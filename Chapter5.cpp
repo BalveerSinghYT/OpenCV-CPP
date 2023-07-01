@@ -45,7 +45,6 @@ void main() {
 	}
 
 	// --------------------------- Display ---------------------------  //
-
 	imshow("Cards Image", img);
 	imshow("King Image", imgWarp1);
 	imshow("Queen Image", imgWarp2);
