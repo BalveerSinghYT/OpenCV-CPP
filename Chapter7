@@ -1,0 +1,69 @@
+#include <opencv2/imgproc.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <iostream>
+
+using namespace std;
+using namespace cv;
+
+///////////////// Contour Detection ////////////////////
+/*
+* Step1: convert the image into binary, so that object should be white & background should be black
+* Step2: Apply Gaussian blur on gray scale image & then detect edges using Canny
+* Step3: Apply dilation to connect the corner of edges properly
+* Step4: Find the contours using findContours & then draw the contour on the Image.
+
+Ref Link: https://docs.opencv.org/3.4/d4/d73/tutorial_py_contours_begin.html
+
+Note: CHAIN_APPROX_SIMPLE method helps us in saving the memory as it uses only points at the corner, instead of a line.
+*/
+
+Mat grayImg, blurImg, edgeImg, dilImg, eroImg;
+
+void get_contours(Mat imgDil, Mat img) {
+	vector<vector<Point>> contours;
+	vector<Vec4i> hierarchy;
+	findContours(imgDil, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);  // src_img, , , contour_retrival_mode,  contour approximation method
+	
+	for (int i = 0; i<contours.size(); i++) {
+		int area = contourArea(contours[i]);
+
+		// if condition will help in eliminating the areas below threshold of 1000
+		if (area > 1000) {
+			drawContours(img, contours, i, Scalar(255, 0, 255), 2);		// out_Img, detected_contours, index_of_contour , color, thickness
+		}
+		cout << area << endl;
+
+	}
+}
+
+
+void main() {
+	string path = "Resources/shapes.png";
+	Mat img = imread(path);
+
+	//---------------------- Image Processing --------------------- //
+	// Colour Conversion
+	cvtColor(img, grayImg, COLOR_BGR2GRAY);
+
+	// Gaussian Blur
+	GaussianBlur(grayImg, blurImg, Size(), 3, 0);
+
+	// Canny Edge Detection
+	Canny(grayImg, edgeImg, 25, 75);
+
+	// Dilation
+	Mat kernal = getStructuringElement(MORPH_RECT,  Size(3,3));
+	dilate(edgeImg, dilImg, kernal);
+	//-------------------------------------------------------------- //
+
+	get_contours(dilImg, img);
+
+	imshow("Original Image", img);
+
+	/*imshow("Gray Image", grayImg);
+	imshow("Blur Image", blurImg);
+	imshow("Canny Edge", edgeImg);
+	imshow("Dilated Image", dilImg);*/
+	waitKey(0);
+}
